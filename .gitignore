@@ -6,4 +6,4 @@ target
 /.settings
 /RUNNING_PID
 /bin/
-
+/logs/
