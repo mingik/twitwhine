@@ -19,7 +19,7 @@ import play.api.libs.ws.{StreamedResponse, WSClient}
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(configuration: Configuration, ws: WSClient)(implicit val mat: Materializer, exec: ExecutionContext) extends Controller {
+class HomeController @Inject()(implicit val exec: ExecutionContext) extends Controller {
 
   /**
    * Create an Action to render an HTML page with a welcome message.
@@ -30,33 +30,4 @@ class HomeController @Inject()(configuration: Configuration, ws: WSClient)(impli
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
   }
-
-  def tweets = Action.async {
-    val credentials: Option[(ConsumerKey, RequestToken)] = tweeterCredentials()
-
-    credentials.map { case (consumerKey, requestToken) =>
-      ws
-        .url("https://stream.twitter.com/1.1/statuses/filter.json")
-        .sign(OAuthCalculator(consumerKey, requestToken))
-        .withQueryString("track" -> "Twitter")
-        .withMethod("POST").stream()
-        .map(loggingStreamConsumer(_))
-        .map(_ => Ok("Stream closed"))
-    } getOrElse {
-      Future { InternalServerError("Twitter credentials missing") }
-    }
-  }
-
-  private def loggingStreamConsumer(streamedResponse: StreamedResponse) = {
-    Logger.info("Status: " + streamedResponse.headers.status)
-    streamedResponse.body.runForeach(byteString => Logger.info(byteString.utf8String))
-  }
-
-
-  private def tweeterCredentials(): Option[(ConsumerKey, RequestToken)] = for {
-    apiKey <- configuration.getString("twitter.apiKey")
-    apiSecret <- configuration.getString("twitter.apiSecret")
-    token <- configuration.getString("twitter.token")
-    tokenSecret <- configuration.getString("twitter.tokenSecret")
-  } yield (ConsumerKey(apiKey, apiSecret), RequestToken(token, tokenSecret))
 }
