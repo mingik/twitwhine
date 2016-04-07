@@ -5,7 +5,9 @@
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
 
-GET     /tweets                     controllers.HomeController.tweets
+GET     /tweets                     controllers.TweeterController.tweets
+
+GET     /tweetsws                     controllers.TweeterController.tweetsWS
 
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count

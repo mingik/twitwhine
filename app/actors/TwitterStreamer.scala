@@ -1,15 +1,21 @@
 package actors
 
 import akka.actor.{Props, Actor, ActorRef}
+import akka.stream.ActorMaterializer
 import play.Logger
 import play.api.Configuration
 import play.api.libs.oauth.{ConsumerKey, OAuthCalculator, RequestToken}
 import play.api.libs.ws.{StreamedResponse, WSClient}
 
+import scala.concurrent.ExecutionContext
+
 /**
  * Created by mintik on 4/5/16.
  */
 class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef) extends Actor {
+  implicit val materializer = ActorMaterializer()
+  import ExecutionContext.Implicits.global
+
   override def receive: Receive = {
     case "subscribe" =>
       Logger.info("Received subscription from client")
