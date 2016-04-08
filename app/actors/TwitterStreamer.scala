@@ -23,9 +23,7 @@ class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef)
     // TODO: what if user sends 'subscribe' as a whine?
     case "subscribe" =>
       Logger.info("Received subscription from client")
-      // TODO: evaluate credentials?
-    case "stop" =>
-      context.stop(self)
+      // TODO: preload credentials here?
     case whine: String =>
       credentials.map { case (consumerKey, requestToken) =>
         ws

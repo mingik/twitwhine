@@ -16,39 +16,43 @@
 
   <script type="text/javascript">
       var url = "@routes.TweeterController.tweetsWS().webSocketURL()";
-      var tweetSocket = new WebSocket(url);
 
-      tweetSocket.onmessage = function (event) {
-          // TODO: add try-catch in case we couldn't parse event.data as JSON
-          // even though server-side guarantees that it's messages are valid JSON strings.
-          if (event.data == "Stream is closed") {
-              // TODO: display something
-          } else {
-              var data = JSON.parse(event.data);
-              if (data && data.text) {
-                  var tweet = document.createElement("p");
-                  var text = document.createTextNode(data.text);
-                  tweet.appendChild(text);
-                  document.getElementById("tweets").appendChild(tweet);
+      var initTweetSocket = function() {
+          var tweetSocket = new WebSocket(url);
+
+          tweetSocket.onmessage = function (event) {
+              // TODO: add try-catch in case we couldn't parse event.data as JSON
+              // even though server-side guarantees that it's messages are valid JSON strings.
+              if (event.data == "Stream is closed") {
+                  // TODO: display something
+              } else {
+                  var data = JSON.parse(event.data);
+                  if (data && data.text) {
+                      var tweet = document.createElement("p");
+                      var text = document.createTextNode(data.text);
+                      tweet.appendChild(text);
+                      document.getElementById("tweets").appendChild(tweet);
+                  }
               }
-          }
+          };
+
+          tweetSocket.onopen = function () {
+              tweetSocket.send("subscribe");
+          };
+
+          tweetSocket.onclose = function () {
+              // TODO: when websocket connection is closed by backend
+          };
+
+          return tweetSocket;
       };
 
-      tweetSocket.onopen = function () {
-          tweetSocket.send("subscribe");
-      };
-
-      tweetSocket.onclose = function () {
-          // reopen new websocket connection
-          // that will create another actor
-          console.log('Reopening webscoket...');
-          tweetSocket = new WebSocket(url);
-      };
+      var currentTweetSocket = initTweetSocket();
 
       var triggerWS = function(whine) {
           var whine = document.getElementById("whine").value;
           if (whine && whine.length > 0) {
-              tweetSocket.send(whine);
+              currentTweetSocket.send(whine);
           } else {
               // TODO: replace with tooltip
               alert("Enter something!");
@@ -56,7 +60,8 @@
       };
 
       var stopTweets = function() {
-          tweetSocket.send('stop');
+          currentTweetSocket.close();
+          currentTweetSocket = initTweetSocket();
       };
 
       var clearTweets = function() {
