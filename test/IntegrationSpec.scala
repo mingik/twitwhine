@@ -17,4 +17,14 @@ class IntegrationSpec extends PlaySpec with OneServerPerTest with OneBrowserPerT
       pageSource must include ("Your new application is ready.")
     }
   }
+
+  "Tweets" should {
+
+    "work from within a browser" in {
+
+      go to ("http://localhost:" + port + "/tweets")
+
+      pageSource must include ("Enter something to whine about:")
+    }
+  }
 }

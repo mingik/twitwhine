@@ -39,4 +39,15 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
 
   }
 
+  "TweeterController" should {
+
+    "return an html page" in {
+      val tweets = route(app, FakeRequest(GET,"/tweets")).get
+
+      status(tweets) mustBe OK
+      contentType(tweets) mustBe Some("text/html")
+      contentAsString(tweets) must include ("Enter something to whine about")
+    }
+  }
+
 }
