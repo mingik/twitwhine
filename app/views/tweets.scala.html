@@ -1,27 +1,66 @@
 @(message: String)(implicit request: RequestHeader)
 
 @main(message) {
+  <div id="search">
+      <form>
+          Enter something to whine about:
+          <input type="text" id="whine"><br>
+          <input type="button" onclick="triggerWS()" value="Submit">
+          <input type="button" onclick="stopTweets()" value="Stop">
+          <input type="button" onclick="clearTweets()" value="Clear">
+      </form>
+
+  </div>
+  <br>
   <div id="tweets"></div>
+
   <script type="text/javascript">
-    var url = "@routes.TweeterController.tweetsWS().webSocketURL()";
-    var tweetSocket = new WebSocket(url);
+      var url = "@routes.TweeterController.tweetsWS().webSocketURL()";
+      var tweetSocket = new WebSocket(url);
 
-    tweetSocket.onmessage = function (event) {
-        // TODO: add try-catch in case we couldn't parse event.data as JSON
-        // even though server-side guarantees that it's messages are valid JSON strings.
-        var data = JSON.parse(event.data);
-        if (data && data.text) {
-            var tweet = document.createElement("p");
-            var text = document.createTextNode(data.text);
-            tweet.appendChild(text);
-            document.getElementById("tweets").appendChild(tweet);
-        } else if (data == "Stream is closed") {
-            tweetSocket.close();
-        }
-    };
+      tweetSocket.onmessage = function (event) {
+          // TODO: add try-catch in case we couldn't parse event.data as JSON
+          // even though server-side guarantees that it's messages are valid JSON strings.
+          if (event.data == "Stream is closed") {
+              // TODO: display something
+          } else {
+              var data = JSON.parse(event.data);
+              if (data && data.text) {
+                  var tweet = document.createElement("p");
+                  var text = document.createTextNode(data.text);
+                  tweet.appendChild(text);
+                  document.getElementById("tweets").appendChild(tweet);
+              }
+          }
+      };
 
-    tweetSocket.onopen = function() {
-      tweetSocket.send("subscribe");
-    };
+      tweetSocket.onopen = function () {
+          tweetSocket.send("subscribe");
+      };
+
+      tweetSocket.onclose = function () {
+          // reopen new websocket connection
+          // that will create another actor
+          console.log('Reopening webscoket...');
+          tweetSocket = new WebSocket(url);
+      };
+
+      var triggerWS = function(whine) {
+          var whine = document.getElementById("whine").value;
+          if (whine && whine.length > 0) {
+              tweetSocket.send(whine);
+          } else {
+              // TODO: replace with tooltip
+              alert("Enter something!");
+          }
+      };
+
+      var stopTweets = function() {
+          tweetSocket.send('stop');
+      };
+
+      var clearTweets = function() {
+          document.getElementById("tweets").innerHTML = "";
+      };
   </script>
 }

@@ -1,7 +1,6 @@
 package actors
 
-import akka.Done
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import akka.stream.ActorMaterializer
 import play.Logger
 import play.api.Configuration
@@ -9,8 +8,7 @@ import play.api.libs.oauth.{ConsumerKey, OAuthCalculator, RequestToken}
 import play.api.libs.ws.{StreamedResponse, WSClient}
 
 import scala.concurrent.ExecutionContext
-import scala.util.Success
-import scala.util.parsing.json.{JSON, JSONFormat}
+import scala.util.parsing.json.JSON
 
 /**
  * Created by mintik on 4/5/16.
@@ -19,16 +17,21 @@ class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef)
   implicit val materializer = ActorMaterializer()
   import ExecutionContext.Implicits.global
 
+  lazy val credentials: Option[(ConsumerKey, RequestToken)] = tweeterCredentials()
+
   override def receive: Receive = {
+    // TODO: what if user sends 'subscribe' as a whine?
     case "subscribe" =>
       Logger.info("Received subscription from client")
-      val credentials: Option[(ConsumerKey, RequestToken)] = tweeterCredentials()
-
+      // TODO: evaluate credentials?
+    case "stop" =>
+      context.stop(self)
+    case whine: String =>
       credentials.map { case (consumerKey, requestToken) =>
         ws
           .url("https://stream.twitter.com/1.1/statuses/filter.json")
           .sign(OAuthCalculator(consumerKey, requestToken))
-          .withQueryString("track" -> "Twitter")
+          .withQueryString("track" -> whine)
           .withMethod("POST").stream()
           .map(loggingStreamConsumer(_))
       } getOrElse {
