@@ -1,6 +1,7 @@
 package actors
 
-import akka.actor.{Props, Actor, ActorRef}
+import akka.Done
+import akka.actor.{Actor, ActorRef, Props}
 import akka.stream.ActorMaterializer
 import play.Logger
 import play.api.Configuration
@@ -8,6 +9,8 @@ import play.api.libs.oauth.{ConsumerKey, OAuthCalculator, RequestToken}
 import play.api.libs.ws.{StreamedResponse, WSClient}
 
 import scala.concurrent.ExecutionContext
+import scala.util.Success
+import scala.util.parsing.json.{JSON, JSONFormat}
 
 /**
  * Created by mintik on 4/5/16.
@@ -34,12 +37,20 @@ class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef)
   }
 
   private def loggingStreamConsumer(streamedResponse: StreamedResponse) = {
-    Logger.info("Status: " + streamedResponse.headers.status)
-    streamedResponse.body.runForeach(byteString => {
-      Logger.info(byteString.utf8String)
-      out ! byteString.utf8String
-    })
-    out ! "Stream is closed"
+    Logger.debug("Status: " + streamedResponse.headers.status)
+    streamedResponse.body
+      .runForeach(byteString => {
+        val str = byteString.utf8String
+        // Make sure that server-side sends valid JSON string to the front-end
+        JSON.parseRaw(str) match {
+          case Some(validJsonStr) =>
+            // TODO: filter out not relevant tweets?
+            out ! str
+          case _ => Logger.debug(s"string from stream is not a valid json: ${str}, skipped.")
+        }})
+      .onComplete {
+        case _ => out ! "Stream is closed"
+    }
   }
 
 

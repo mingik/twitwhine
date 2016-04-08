@@ -22,7 +22,6 @@ import scala.concurrent.{Future, ExecutionContext}
 class TweeterController @Inject()
 (configuration: Configuration, ws: WSClient)
 (implicit system: ActorSystem, materializer: Materializer, exec: ExecutionContext) extends Controller {
-  // TODO: remove this deprectated method
   def tweetsWS = WebSocket.accept[String, String] { request =>
     ActorFlow.actorRef(out => TwitterStreamer.props(configuration, ws, out))
   }

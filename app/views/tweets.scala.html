@@ -7,12 +7,17 @@
     var tweetSocket = new WebSocket(url);
 
     tweetSocket.onmessage = function (event) {
-      console.log(event);
-      var data = JSON.parse(event.data);
-      var tweet = document.createElement("p");
-      var text = document.createTextNode(data.text);
-      tweet.appendChild(text);
-      document.getElementById("tweets").appendChild(tweet);
+        // TODO: add try-catch in case we couldn't parse event.data as JSON
+        // even though server-side guarantees that it's messages are valid JSON strings.
+        var data = JSON.parse(event.data);
+        if (data && data.text) {
+            var tweet = document.createElement("p");
+            var text = document.createTextNode(data.text);
+            tweet.appendChild(text);
+            document.getElementById("tweets").appendChild(tweet);
+        } else if (data == "Stream is closed") {
+            tweetSocket.close();
+        }
     };
 
     tweetSocket.onopen = function() {
