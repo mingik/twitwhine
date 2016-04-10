@@ -28,10 +28,14 @@
               } else {
                   var data = JSON.parse(event.data);
                   if (data && data.text) {
-                      var tweet = document.createElement("p");
+                      var tweetDiv = document.createElement("div");
+                      var tweet = document.createElement("blockquote");
+                      tweet.className = "twitter-tweet";
                       var text = document.createTextNode(data.text);
+
                       tweet.appendChild(text);
-                      document.getElementById("tweets").appendChild(tweet);
+                      tweetDiv.appendChild(tweet);
+                      document.getElementById("tweets").appendChild(tweetDiv);
                   }
               }
           };
@@ -49,7 +53,7 @@
 
       var currentTweetSocket = initTweetSocket();
 
-      var triggerWS = function(whine) {
+      var triggerWS = function() {
           var whine = document.getElementById("whine").value;
           if (whine && whine.length > 0) {
               currentTweetSocket.send(whine);
