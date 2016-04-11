@@ -1,4 +1,10 @@
+import actors.TwitterStreamer
+import akka.actor.ActorRef
+import akka.testkit.{ImplicitSender, TestProbe, TestActorRef}
+import org.scalamock.scalatest.MockFactory
 import org.scalatestplus.play._
+import play.api.Configuration
+import play.api.libs.ws.WSClient
 import play.api.test._
 import play.api.test.Helpers._
 
