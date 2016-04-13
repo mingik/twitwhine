@@ -35,10 +35,10 @@ class ActorsSpec extends TestKit(ActorSystem("ActorsSpec")) with ImplicitSender 
         ("twitter.token","token"), ("twitter.tokenSecret","secret"))
       val wsClient = stub[WSClient]
       val wsRequest = stub[WSRequest]
-      (wsClient.url _).when("https://stream.twitter.com/1.1/statuses/filter.json").returns(wsRequest)
+      (wsClient.url _).when("https://api.twitter.com/1.1/search/tweets.json").returns(wsRequest)
       (wsRequest.sign _).when(*).returns(wsRequest)
-      (wsRequest.withQueryString _).when(List(("track", "twitter")).toSeq).returns(wsRequest)
-      (wsRequest.withMethod _).when("POST").returns(wsRequest)
+      (wsRequest.withQueryString _).when(List(("q", "twitter")).toSeq).returns(wsRequest)
+      (wsRequest.withMethod _).when("GET").returns(wsRequest)
       val headers = stub[WSResponseHeaders]
       val streamedResponse = Future { StreamedResponse(headers, Source.single(ByteString("Hello World"))) }
       (wsRequest.stream _).when().returns(streamedResponse)
@@ -57,10 +57,10 @@ class ActorsSpec extends TestKit(ActorSystem("ActorsSpec")) with ImplicitSender 
         ("twitter.token","token"), ("twitter.tokenSecret","secret"))
       val wsClient = stub[WSClient]
       val wsRequest = stub[WSRequest]
-      (wsClient.url _).when("https://stream.twitter.com/1.1/statuses/filter.json").returns(wsRequest)
+      (wsClient.url _).when("https://api.twitter.com/1.1/search/tweets.json").returns(wsRequest)
       (wsRequest.sign _).when(*).returns(wsRequest)
-      (wsRequest.withQueryString _).when(List(("track", "twitter")).toSeq).returns(wsRequest)
-      (wsRequest.withMethod _).when("POST").returns(wsRequest)
+      (wsRequest.withQueryString _).when(List(("q", "twitter")).toSeq).returns(wsRequest)
+      (wsRequest.withMethod _).when("GET").returns(wsRequest)
       val headers = stub[WSResponseHeaders]
       val streamedResponse = Future { StreamedResponse(headers, Source.single(ByteString("{\"hello\": 33}"))) }
       (wsRequest.stream _).when().returns(streamedResponse)

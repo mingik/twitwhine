@@ -26,12 +26,8 @@ class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef)
       // TODO: preload credentials here?
     case whine: String =>
       credentials.map { case (consumerKey, requestToken) =>
-        ws
-          .url("https://stream.twitter.com/1.1/statuses/filter.json")
-          .sign(OAuthCalculator(consumerKey, requestToken))
-          .withQueryString("track" -> whine)
-          .withMethod("POST").stream()
-          .map(loggingStreamConsumer(_))
+          TwitterStreamer.searchTweets(ws, consumerKey, requestToken, whine)
+            .map(loggingStreamConsumer(_))
       } getOrElse {
         out ! "Twitter credentials missing"
       }
@@ -65,4 +61,19 @@ class TwitterStreamer(configuration: Configuration, ws: WSClient, out: ActorRef)
 
 object TwitterStreamer {
   def props(configuration: Configuration, ws: WSClient, out: ActorRef) = Props(new TwitterStreamer(configuration, ws, out))
+
+  def searchTweets(ws: WSClient, consumerKey: ConsumerKey, requestToken: RequestToken, whine: String) = ws
+    .url("https://api.twitter.com/1.1/search/tweets.json")
+    .sign(OAuthCalculator(consumerKey, requestToken))
+    .withQueryString("q" -> whine)
+    .withMethod("GET")
+    .stream()
+
+  def searchStatuses(ws: WSClient, consumerKey: ConsumerKey, requestToken: RequestToken, whine: String) = ws
+    .url("https://stream.twitter.com/1.1/statuses/filter.json")
+    .sign(OAuthCalculator(consumerKey, requestToken))
+    .withQueryString("track" -> whine)
+    .withMethod("POST")
+    .stream()
+
 }
