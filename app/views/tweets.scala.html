@@ -9,7 +9,12 @@
           <input type="button" onclick="stopTweets()" value="Stop">
           <input type="button" onclick="clearTweets()" value="Clear">
       </form>
-
+      <div id="alert-enter-something" class="hidden">
+          <div class="alert alert-warning fade in">
+              <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+              <strong>Warning!</strong> You should enter something!
+          </div>
+      </div>
   </div>
   <br>
   <div id="tweets"></div>
@@ -58,8 +63,7 @@
           if (whine && whine.length > 0) {
               currentTweetSocket.send(whine);
           } else {
-              // TODO: replace with tooltip
-              alert("Enter something!");
+              document.getElementById("alert-enter-something").classList.remove("hidden");
           }
       };
 
